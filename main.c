@@ -1,17 +1,3 @@
-/*
- * ============================================================================
- * RBAC (Role-Based Access Control) System
- * Operating Systems Lab Project
- *
- * Demonstrates: Processes (fork), POSIX Threads, Mutexes, Semaphores,
- *               IPC (pipes + shared memory), File I/O, Deadlock Prevention,
- *               and Process Scheduling Simulation.
- *
- * Author  : OS Lab Student
- * Compile : gcc -o rbac_os_lab rbac_os_lab.c -lpthread -lrt
- * Run     : ./rbac_os_lab
- * ============================================================================
- */
 
 /* ── Standard headers ─────────────────────────────────────────────────── */
 #define _GNU_SOURCE
@@ -211,13 +197,7 @@ static void safe_input(char *buf, int maxlen)
  * SECTION 2 – Logging subsystem  (uses pthread + mutex + cond variable)
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – THREADS & SYNCHRONISATION
- * log_worker() runs in a dedicated POSIX thread.  It sleeps on a condition
- * variable (g_log_cond) until a log entry is placed in the queue, then
- * wakes up, claims the mutex, dequeues the entry, writes it to disk, and
- * releases the mutex.  This prevents the main thread from blocking on I/O
- * and demonstrates producer-consumer synchronisation.
+
  */
 static void *log_worker(void *arg)
 {
@@ -398,13 +378,7 @@ static void init_resources(void)
  * SECTION 5 – Shared memory (IPC)
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – IPC (SHARED MEMORY)
- * POSIX shared memory lets multiple processes read/write the same physical
- * pages.  Here the parent process creates the segment and a forked child
- * process can also access it.  Access is protected by a mutex to prevent
- * races across threads.
- */
+
 static void init_shared_memory(void)
 {
     g_shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
@@ -429,13 +403,7 @@ static void cleanup_shared_memory(void)
  * SECTION 6 – Scheduling simulation  (priority queue + worker threads)
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – PROCESS SCHEDULING SIMULATION
- * Requests are inserted into a priority queue (higher priority first).
- * Worker threads pick requests from the queue using a semaphore for
- * signalling and a mutex for exclusive queue access – a classic
- * bounded-buffer / producer-consumer pattern.
- */
+
 static void enqueue_request(int user_idx, const char *request_str)
 {
     pthread_mutex_lock(&g_req_mutex);
@@ -511,16 +479,7 @@ static void stop_worker_threads(void)
  * SECTION 7 – Deadlock prevention demo
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – DEADLOCK PREVENTION
- * Strategy 1: Resource-ordering (mutex hierarchy).
- *   Threads always acquire resource mutexes in ascending ID order, so a
- *   circular-wait (condition 4 of Coffman) can never occur.
- *
- * Strategy 2: Timeout-based locking (try-lock with deadline).
- *   If a thread cannot acquire a mutex within LOCK_TIMEOUT_SEC seconds it
- *   backs off and retries – breaking the "hold-and-wait" condition.
- */
+
 static int try_lock_resource(Resource *r, int timeout_sec)
 {
     struct timespec ts;
@@ -575,12 +534,7 @@ static void deadlock_demo(void)
  * SECTION 8 – IPC pipe demo  (fork + pipe)
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – PROCESSES & IPC (PIPES)
- * fork() creates an exact copy of the current process.  We then use an
- * anonymous pipe so the child can send a status message back to the parent.
- * The parent waits with waitpid() and displays the child's report.
- */
+
 static void fork_ipc_demo(void)
 {
     print_header("PROCESS FORK + IPC PIPE DEMONSTRATION");
@@ -674,11 +628,7 @@ static void access_resource(int user_idx, int resource_id)
         return;
     }
 
-    /*
-     * OS CONCEPT – MUTEX (CRITICAL SECTION)
-     * Before touching the resource we acquire its per-resource mutex.
-     * We use the timeout variant so a stuck lock never freezes the UI.
-     */
+
     if (!try_lock_resource(r, LOCK_TIMEOUT_SEC)) {
         printf("  Resource '%s' is busy (timeout). Try again later.\n", r->name);
         return;
@@ -794,11 +744,6 @@ static void show_system_status(void)
  * SECTION 12 – Semaphore demo
  * ═══════════════════════════════════════════════════════════════════════ */
 
-/*
- * OS CONCEPT – SEMAPHORES
- * A counting semaphore limits how many threads can simultaneously access
- * a shared resource (here: the "shared_memory_A" resource pool, capacity 2).
- */
 typedef struct { int tid; sem_t *sem; int resource_id; int user_idx; } SemDemoArg;
 
 static void *sem_demo_thread(void *arg)
